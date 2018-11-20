@@ -47,7 +47,7 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li >
-                                <a href="..">JMusicBot</a>
+                                <a href="..">Overview</a>
                             </li>
                             <li class="active">
                                 <a href="./">Plugins</a>
@@ -98,6 +98,31 @@ the same basic <code>Plugin</code> contract:</p>
 <h2 id="lifecycle">Lifecycle<a class="headerlink" href="#lifecycle" title="Permanent link">&para;</a></h2>
 <p>Plugins have a well defined lifecycle, and it is extremely important that you understand it in order
 to create your own implementation.</p>
+<h3 id="creation">Creation<a class="headerlink" href="#creation" title="Permanent link">&para;</a></h3>
+<p>Every plugin is instantiated by the bot using a public no-arg constructor.
+The constructor should do no more than basic object setup, it should especially not bind resources.</p>
+<p>While the plugin is in this state, it's dependencies are statically evaluated and the only property
+that will be accessed is its <code>name</code> property.
+The end user chooses which plugins to actually activate and how dependencies are satisfied.</p>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<p>The plugin's dependencies are injected and its configuration methods are called:</p>
+<ul>
+<li><code>createConfigEntries(Config): List&lt;Config.Entry&lt;*&gt;&gt;</code></li>
+<li><code>createSecretEntries(Config): List&lt;Config.Entry&lt;*&gt;&gt;</code></li>
+<li><code>createStateEntries(Config)</code></li>
+</ul>
+<p>The three methods receive different <code>Config</code> objects appropriate for the specific kind of data.</p>
+<p>Only the configuration entries returned by the methods are shown to the user to configure, but you
+are free to create more.</p>
+<p>In this state the plugin may temporarily do work if configuration is requested. For example, if
+a list of choices for a Playlist to play is requested in the config UI, the plugin may connect to
+a web service and retrieve a list of possibilities.</p>
+<h3 id="initialization">Initialization<a class="headerlink" href="#initialization" title="Permanent link">&para;</a></h3>
+<p>The <code>initialize(InitStateWriter)</code> method is called and the plugin may allocate resources, start
+long-running jobs etc. The plugin remains in this state until it is explicitly closed.</p>
+<h3 id="destruction">Destruction<a class="headerlink" href="#destruction" title="Permanent link">&para;</a></h3>
+<p>The <code>close()</code> method is called and the plugin must release all resources. The instance will never be
+reinitialized or used again.</p>
 <h2 id="playbackfactory">PlaybackFactory<a class="headerlink" href="#playbackfactory" title="Permanent link">&para;</a></h2>
 <p>A <code>PlaybackFactory</code> provides a way to actually play a specific kind of song, for example MP3 files
 or YouTube videos.</p>
@@ -122,7 +147,12 @@ For example, it wouldn't be possible to play Spotify songs if the only possibili
 stream songs, because Spotify doesn't allow that. Instead, the Spotify plugin simply controls the
 playback of an official Spotify client (which typically runs on the same machine as the bot).</p>
 <h2 id="provider">Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h2>
-<p>Providers are the integral part to integrating music providers into JMusicBot.</p></div>
+<p>Providers are the integral part to integrating music providers into JMusicBot.
+They provide access to the songs of a specific source (Spotify, local hard disk, YouTube, etc.)
+by offering a <code>search</code> by query and a <code>lookup</code> by song ID.</p>
+<p>A provider also typically declares a <a href="#playbackfactory"><code>PlaybackFactory</code></a> dependency, which it
+delegates to whenever the <code>Playback</code> for a song is actually requested via
+the <code>getPlaybackSupplier()</code> method.</p></div>
         </div>
 
         <footer class="col-md-12">
