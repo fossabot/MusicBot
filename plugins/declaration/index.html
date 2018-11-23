@@ -4,14 +4,14 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="None">
         
         
-        <link rel="shortcut icon" href="img/favicon.ico">
-        <title>JMusicBot</title>
-        <link href="css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="css/font-awesome.min.css" rel="stylesheet">
-        <link href="css/base.css" rel="stylesheet">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Declaration - JMusicBot</title>
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -19,13 +19,13 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <script src="js/jquery-1.10.2.min.js" defer></script>
-        <script src="js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script> 
     </head>
 
-    <body class="homepage">
+    <body>
 
         <div class="navbar navbar-default navbar-fixed-top" role="navigation">
             <div class="container">
@@ -39,30 +39,30 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href=".">JMusicBot</a>
+                    <a class="navbar-brand" href="../..">JMusicBot</a>
                 </div>
 
                 <!-- Expanded navigation -->
                 <div class="navbar-collapse collapse">
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
-                            <li class="active">
-                                <a href=".">Overview</a>
+                            <li >
+                                <a href="../..">Overview</a>
                             </li>
-                            <li class="dropdown">
+                            <li class="dropdown active">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plugins <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
 <li >
-    <a href="plugins/">Plugin types</a>
+    <a href="../">Plugin types</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Declaration</a>
 </li>
                                     
 <li >
-    <a href="plugins/declaration/">Declaration</a>
-</li>
-                                    
-<li >
-    <a href="plugins/lifecycle/">Lifecycle</a>
+    <a href="../lifecycle/">Lifecycle</a>
 </li>
                                 </ul>
                             </li>
@@ -74,13 +74,13 @@
                                 <i class="fa fa-search"></i> Search
                             </a>
                         </li>
-                            <li class="disabled">
-                                <a rel="next" >
+                            <li >
+                                <a rel="next" href="../">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li >
-                                <a rel="prev" href="plugins/">
+                                <a rel="prev" href="../lifecycle/">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -92,14 +92,72 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#overview">Overview</a></li>
+        <li class="main active"><a href="#declaration">Declaration</a></li>
+            <li><a href="#bases">Bases</a></li>
+            <li><a href="#service">Service</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
-<p>JMusicBot is a library that allows you to create a collaborative music queue using songs from
-several providers like Spotify, YouTube or Google Play Music.</p></div>
+<h1 id="declaration">Declaration<a class="headerlink" href="#declaration" title="Permanent link">&para;</a></h1>
+<h2 id="bases">Bases<a class="headerlink" href="#bases" title="Permanent link">&para;</a></h2>
+<p>A plugin must declare its "bases",
+i.e. the plugin interfaces for which it provides an implementation.</p>
+<h3 id="idbase"><code>@IdBase</code><a class="headerlink" href="#idbase" title="Permanent link">&para;</a></h3>
+<p>The identifying base of the plugin. This might be the implementation class itself, but it is
+recommended to create an extra interface or base class for each plugin so it might be replaced
+by an alternative implementation.</p>
+<p>The ID base must also be included in the bases.</p>
+<h3 id="bases_1"><code>@Bases</code><a class="headerlink" href="#bases_1" title="Permanent link">&para;</a></h3>
+<p>These are the interfaces the plugins provides an implementation for.</p>
+<p>If any of these interfaces are required by another plugin, this plugin may be chosen by the user
+as the implementation.
+Note that <code>Active</code> plugins, i.e. providers and suggesters, are always implicitly required.</p>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<h4 id="provider">Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h4>
+<p>A <code>Provider</code> for Spotify songs may have a base interface <code>SpotifyProvider</code>, which it declares
+as its <code>@IdBase</code>.
+The specific base interface is <code>Provider</code>, which has a use in itself, so it is also added
+to the bases.</p>
+<pre><code class="kotlin">interface SpotifyProvider : Provider
+@IdBase(SpotifyProvider::class)
+@Bases(SpotifyProvider::class, Provider::class)
+class SpotifyProviderImpl : SpotifyProvider
+</code></pre>
+
+<h4 id="playbackfactory">PlaybackFactory<a class="headerlink" href="#playbackfactory" title="Permanent link">&para;</a></h4>
+<p>The <code>PlaybackFactory</code> interface does not have value in itself, so it is not included in the bases.
+Instead, just specializations of the <code>PlaybackFactory</code> interface are included,
+for example <code>Mp3PlaybackFactory</code> or <code>YouTubePlaybackFactory</code>.</p>
+<hr />
+<p>An implementation for Spotify songs may look like this:</p>
+<pre><code class="kotlin">interface SpotifyPlaybackFactory : PlaybackFactory {
+    fun getPlayback(spotifySongId: String)
+}
+@IdBase(SpotifyPlaybackFactory::class)
+@Bases(SpotifyPlaybackFactory::class)
+class SpotifyProviderImpl : SpotifyPlaybackFactory
+</code></pre>
+
+<p>Note that the base interface declares the crucial <code>getPlayback(...)</code> method
+without which a <code>PlaybackFactory</code> is not useful at all.</p>
+<hr />
+<p>An implementation using VLC to play a variety of file formats may look like this:</p>
+<pre><code class="kotlin">interface VlcPlaybackFactory : Mp3PlaybackFactory, AacPlaybackFactory, FlacPlaybackFactory
+@IdBase(VlcPlaybackFactory::class)
+@Bases(
+    VlcPlaybackFactory::class,
+    Mp3PlaybackFactory::class,
+    AacPlaybackFactory::class,
+    FlacPlaybackFactory::class)
+class VlcPlaybackFactoryImpl : VlcPlaybackFactory
+</code></pre>
+
+<h2 id="service">Service<a class="headerlink" href="#service" title="Permanent link">&para;</a></h2>
+<p>In order for the bot to find your plugin, you have to create a file with the fully qualified name
+of the implemented specific base interface (e.g. <code>com.github.bjoernpetersen.musicbot.Provider</code>)
+in the <code>META-INF/services</code> directory. The file should contain all your implementations of the
+base interface, each on its own line.</p></div>
         </div>
 
         <footer class="col-md-12">
@@ -107,11 +165,11 @@ several providers like Spotify, YouTube or Google Play Music.</p></div>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>
-            var base_url = ".",
+            var base_url = "../..",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="js/base.js" defer></script>
-        <script src="search/main.js" defer></script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
     <div class="modal-dialog">
@@ -179,8 +237,3 @@ several providers like Spotify, YouTube or Google Play Music.</p></div>
 
     </body>
 </html>
-
-<!--
-MkDocs version : 1.0.4
-Build Date UTC : 2018-11-23 09:17:47
--->
