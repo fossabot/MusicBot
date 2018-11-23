@@ -79,22 +79,82 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#plugins">Plugins</a></li>
+            <li><a href="#declaration">Declaration</a></li>
             <li><a href="#lifecycle">Lifecycle</a></li>
-            <li><a href="#playbackfactory">PlaybackFactory</a></li>
-            <li><a href="#provider">Provider</a></li>
+            <li><a href="#playbackfactory_1">PlaybackFactory</a></li>
+            <li><a href="#provider_1">Provider</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
 <h1 id="plugins">Plugins<a class="headerlink" href="#plugins" title="Permanent link">&para;</a></h1>
-<p>JMusicBot allows you to write a variety of plugins. There are four base classes, which all implement
-the same basic <code>Plugin</code> contract:</p>
+<p>JMusicBot allows you to write a variety of plugins. There are four specific base interfaces,
+which all implement the same basic <code>Plugin</code> interface:</p>
 <ul>
 <li><code>GenericPlugin</code></li>
 <li><a href="#playbackfactory"><code>PlaybackFactory</code></a></li>
 <li><a href="#provider"><code>Provider</code></a></li>
 <li><code>Suggester</code></li>
 </ul>
+<h2 id="declaration">Declaration<a class="headerlink" href="#declaration" title="Permanent link">&para;</a></h2>
+<h3 id="bases">Bases<a class="headerlink" href="#bases" title="Permanent link">&para;</a></h3>
+<p>A plugin must declare its "bases",
+i.e. the plugin interfaces for which it provides an implementation.</p>
+<h4 id="idbase"><code>@IdBase</code><a class="headerlink" href="#idbase" title="Permanent link">&para;</a></h4>
+<p>The identifying base of the plugin. This might be the implementation class itself, but it is
+recommended to create an extra interface or base class for each plugin so it might be replaced
+by an alternative implementation.</p>
+<p>The ID base must also be included in the bases.</p>
+<h4 id="bases_1"><code>@Bases</code><a class="headerlink" href="#bases_1" title="Permanent link">&para;</a></h4>
+<p>These are the interfaces the plugins provides an implementation for.</p>
+<p>If any of these interfaces are required by another plugin, this plugin may be chosen by the user
+as the implementation.
+Note that <code>Active</code> plugins, i.e. providers and suggesters, are always implicitly required.</p>
+<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h4>
+<h5 id="provider">Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h5>
+<p>A <code>Provider</code> for Spotify songs may have a base interface <code>SpotifyProvider</code>, which it declares
+as its <code>@IdBase</code>.
+The specific base interface is <code>Provider</code>, which has a use in itself, so it is also added
+to the bases.</p>
+<pre><code class="kotlin">interface SpotifyProvider : Provider
+@IdBase(SpotifyProvider::class)
+@Bases(SpotifyProvider::class, Provider::class)
+class SpotifyProviderImpl : SpotifyProvider
+</code></pre>
+
+<h5 id="playbackfactory">PlaybackFactory<a class="headerlink" href="#playbackfactory" title="Permanent link">&para;</a></h5>
+<p>The <code>PlaybackFactory</code> interface does not have value in itself, so it is not included in the bases.
+Instead, just specializations of the <code>PlaybackFactory</code> interface are included,
+for example <code>Mp3PlaybackFactory</code> or <code>YouTubePlaybackFactory</code>.</p>
+<hr />
+<p>An implementation for Spotify songs may look like this:</p>
+<pre><code class="kotlin">interface SpotifyPlaybackFactory : PlaybackFactory {
+    fun getPlayback(spotifySongId: String)
+}
+@IdBase(SpotifyPlaybackFactory::class)
+@Bases(SpotifyPlaybackFactory::class)
+class SpotifyProviderImpl : SpotifyPlaybackFactory
+</code></pre>
+
+<p>Note that the base interface declares the crucial <code>getPlayback(...)</code> method
+without which a <code>PlaybackFactory</code> is not useful at all.</p>
+<hr />
+<p>An implementation using VLC to play a variety of file formats may look like this:</p>
+<pre><code class="kotlin">interface VlcPlaybackFactory : Mp3PlaybackFactory, AacPlaybackFactory, FlacPlaybackFactory
+@IdBase(VlcPlaybackFactory::class)
+@Bases(
+    VlcPlaybackFactory::class,
+    Mp3PlaybackFactory::class,
+    AacPlaybackFactory::class,
+    FlacPlaybackFactory::class)
+class VlcPlaybackFactoryImpl : VlcPlaybackFactory
+</code></pre>
+
+<h3 id="service">Service<a class="headerlink" href="#service" title="Permanent link">&para;</a></h3>
+<p>In order for the bot to find your plugin, you have to create a file with the fully qualified name
+of the implemented specific base interface (e.g. <code>com.github.bjoernpetersen.musicbot.Provider</code>)
+in the <code>META-INF/services</code> directory. The file should contain all your implementations of the
+base interface, each on its own line.</p>
 <h2 id="lifecycle">Lifecycle<a class="headerlink" href="#lifecycle" title="Permanent link">&para;</a></h2>
 <p>Plugins have a well defined lifecycle, and it is extremely important that you understand it in order
 to create your own implementation.</p>
@@ -123,7 +183,7 @@ long-running jobs etc. The plugin remains in this state until it is explicitly c
 <h3 id="destruction">Destruction<a class="headerlink" href="#destruction" title="Permanent link">&para;</a></h3>
 <p>The <code>close()</code> method is called and the plugin must release all resources. The instance will never be
 reinitialized or used again.</p>
-<h2 id="playbackfactory">PlaybackFactory<a class="headerlink" href="#playbackfactory" title="Permanent link">&para;</a></h2>
+<h2 id="playbackfactory_1">PlaybackFactory<a class="headerlink" href="#playbackfactory_1" title="Permanent link">&para;</a></h2>
 <p>A <code>PlaybackFactory</code> provides a way to actually play a specific kind of song, for example MP3 files
 or YouTube videos.</p>
 <p>A few restrictions are imposed on Playback factories:</p>
@@ -146,7 +206,7 @@ variety of services.
 For example, it wouldn't be possible to play Spotify songs if the only possibility were to directly
 stream songs, because Spotify doesn't allow that. Instead, the Spotify plugin simply controls the
 playback of an official Spotify client (which typically runs on the same machine as the bot).</p>
-<h2 id="provider">Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h2>
+<h2 id="provider_1">Provider<a class="headerlink" href="#provider_1" title="Permanent link">&para;</a></h2>
 <p>Providers are the integral part to integrating music providers into JMusicBot.
 They provide access to the songs of a specific source (Spotify, local hard disk, YouTube, etc.)
 by offering a <code>search</code> by query and a <code>lookup</code> by song ID.</p>
