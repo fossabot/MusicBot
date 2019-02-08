@@ -7,11 +7,11 @@
         
         
         
-        <link rel="shortcut icon" href="/img/favicon.ico">
-        <title>JMusicBot</title>
-        <link href="/css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="/css/font-awesome.min.css" rel="stylesheet">
-        <link href="/css/base.css" rel="stylesheet">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Resources - JMusicBot</title>
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <script src="/js/jquery-1.10.2.min.js" defer></script>
-        <script src="/js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../../js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script> 
     </head>
@@ -39,7 +39,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/.">JMusicBot</a>
+                    <a class="navbar-brand" href="../..">JMusicBot</a>
                 </div>
 
                 <!-- Expanded navigation -->
@@ -47,26 +47,26 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li >
-                                <a href="/.">Overview</a>
+                                <a href="../..">Overview</a>
                             </li>
-                            <li class="dropdown">
+                            <li class="dropdown active">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plugins <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
 <li >
-    <a href="/plugins/">Plugin types</a>
+    <a href="../">Plugin types</a>
 </li>
                                     
 <li >
-    <a href="/plugins/declaration/">Declaration</a>
+    <a href="../declaration/">Declaration</a>
 </li>
                                     
 <li >
-    <a href="/plugins/lifecycle/">Lifecycle</a>
+    <a href="../lifecycle/">Lifecycle</a>
 </li>
                                     
-<li >
-    <a href="/plugins/resources/">Resources</a>
+<li class="active">
+    <a href="./">Resources</a>
 </li>
                                 </ul>
                             </li>
@@ -78,21 +78,108 @@
                                 <i class="fa fa-search"></i> Search
                             </a>
                         </li>
+                            <li >
+                                <a rel="next" href="../lifecycle/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="disabled">
+                                <a rel="prev" >
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
                     </ul>
                 </div>
             </div>
         </div>
 
         <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#resources">Resources</a></li>
+            <li><a href="#examples">Examples</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
 
-    <div class="row-fluid">
-      <div id="main-content" class="span12">
-        <h1 id="404-page-not-found" style="text-align: center">404</h1>
-        <p style="text-align: center"><strong>Page not found</strong></p>
-      </div>
-    </div>
+<h1 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h1>
+<p>Provider plugins may allocate resources when a song is loaded via the <code>Provider.loadSong()</code> method.
+Such a resource could be reusable (e.g. a downloaded file) or single-use (e.g. a data stream).</p>
+<p>Whenever the Core determines that the resource for a song might be needed soon,
+it will check whether a valid resource is cached for the song, and if not, call your <code>loadSong()</code>
+implementation.</p>
+<p>The resource might be discarded without ever being used, but before a resource is discarded, it is
+guaranteed that the <code>Resource.free()</code> method will be called.</p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="no-resources">No resources<a class="headerlink" href="#no-resources" title="Permanent link">&para;</a></h3>
+<p>If you don't need to allocate any resources, you can simply return the <code>NoResource</code> singleton.</p>
+<p><strong> Kotlin: </strong></p>
+<pre><code class="kotlin">override fun loadSong(song: Song): Resource = NoResource
+</code></pre>
 
+<p><strong> Java: </strong></p>
+<pre><code class="java">@Override
+public Resource loadSong(Song song) {
+    return NoResource.INSTANCE;
+}
+</code></pre>
 
+<h3 id="file-resources">File resources<a class="headerlink" href="#file-resources" title="Permanent link">&para;</a></h3>
+<p>A commonly used type of resource is a file resource. Let's say your provider needs to download an
+MP3-file before playing it. That MP3-file of course needs to be deleted at some point in the future,
+because storage space is typically finite.
+For that use case, the <code>FileResource</code> class is already included in the Core library.</p>
+<p>In this case your <code>loadSong()</code> and <code>supplyPlayback()</code> methods might look the following way:</p>
+<p><strong> Kotlin: </strong></p>
+<pre><code class="kotlin">
+@Base
+interface MyPlaybackFactory : FilePlaybackFactory
+
+@IdBase
+class MyProvider : Provider {
+    @Inject
+    private lateinit var myPlaybackFactory: MyPlaybackFactory
+
+    // ...
+
+    override fun loadSong(song: Song): Resource {
+        val file: File = downloadSong(song)
+        return FileResource(file)
+    }
+
+    override fun supplyPlayback(song: Song, resource: Resource): Playback {
+        val fileResource = resource as FileResource
+        return myPlaybackFactory.createPlayback(fileResource.file)
+    }
+}
+</code></pre>
+
+<p><strong> Java: </strong></p>
+<pre><code class="java">// file MyPlaybackFactory.java
+@Base
+public interface MyPlaybackFactory extends FilePlaybackFactory {}
+
+// file MyProvider.java
+@IdBase
+public class MyProvider implements Provider {
+    @Inject
+    private myPlaybackFactory: MyPlaybackFactory
+
+    // ...
+
+    @Override
+    public Resource loadSong(Song song) {
+        File file = downloadSong(song);
+        return new FileResource(file);
+    }
+
+    @Override
+    public Playback supplyPlayback(song: Song, resource: Resource) {
+        FileResource fileResource = (FileResource) resource
+        return myPlaybackFactory.createPlayback(fileResource.getFile())
+    }
+}
+</code></pre></div>
         </div>
 
         <footer class="col-md-12">
@@ -100,11 +187,11 @@
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>
-            var base_url = "/",
+            var base_url = "../..",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="/js/base.js" defer></script>
-        <script src="/search/main.js" defer></script>
+        <script src="../../js/base.js" defer></script>
+        <script src="../../search/main.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
     <div class="modal-dialog">
