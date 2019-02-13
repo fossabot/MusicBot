@@ -105,28 +105,35 @@
 
 <h1 id="declaration">Declaration<a class="headerlink" href="#declaration" title="Permanent link">&para;</a></h1>
 <h2 id="bases">Bases<a class="headerlink" href="#bases" title="Permanent link">&para;</a></h2>
-<p>A plugin may implement several base interfaces, which are annotated either by <code>@Base</code>, <code>@ActiveBase</code>
+<p>A plugin may implement several base interfaces, which are annotated by <code>@Base</code>, <code>@ActiveBase</code>
 or <code>@IdBase</code>. Superclasses which are not annotated with either of those are ignored.</p>
 <h3 id="base"><code>@Base</code><a class="headerlink" href="#base" title="Permanent link">&para;</a></h3>
 <p>Use this to annotate a base class or interface which other plugins might depend on.
 It is recommended to create a base interface or class for your plugin, even if you don't plan on
 creating multiple implementations yourself.</p>
-<h3 id="idbase"><code>@IdBase</code><a class="headerlink" href="#idbase" title="Permanent link">&para;</a></h3>
-<p>If your plugin implements <code>Provider</code> or <code>Suggester</code>, your plugin will be looked up by its ID.
-The ID is derived from its most specific base, which is identified by the <code>@IdBase</code> annotation.</p>
-<p>If, for some reason, you absolutely don't want to create a base interface, you may also annotate 
-your implementation with <code>@IdBase</code> directly.</p>
-<p>A plugin must not have more than one ID base.</p>
 <h3 id="activebase"><code>@ActiveBase</code><a class="headerlink" href="#activebase" title="Permanent link">&para;</a></h3>
-<p>This annotation is reserved for predefined base interfaces (<code>Provider</code> and <code>Suggester</code>).</p>
-<p>It marks bases which are actively used by the bot and may have multiple active implementations.</p>
-<p>Plugins implementing an active base must also have an ID base.</p>
+<p>This annotation marks a base which is either actively used by the bot 
+(like <code>Provider</code> and <code>Suggester</code>), or actively provides a feature and should be enabled even if no
+other active plugin depends on it.</p>
+<p>Plugins implementing an active base <strong>must</strong> also have an ID base.</p>
+<h3 id="idbase"><code>@IdBase</code><a class="headerlink" href="#idbase" title="Permanent link">&para;</a></h3>
+<p>If your plugin implements an active base (such as <code>Provider</code> or <code>Suggester</code>),
+it needs a base that identifies it. There will always be only one enabled plugin per ID base.</p>
+<p>For example, a provider of Spotify songs should implement a base interface 
+<code>SpotifyProvider</code> annotated with <code>@IdBase</code>.
+Songs that implementation provides would not have a reference to the implementation itself, but 
+to its ID, <code>SpotifyProvider</code>. If someone else comes along now and creates an alternative implementation 
+of that ID base, songs created by the first implementation could still be used even though the
+implementation changed. </p>
+<p>If, for some reason, you absolutely don't want to create a separate base interface, 
+you may also annotate your implementation with <code>@IdBase</code> directly.</p>
+<p>A plugin must not have more than one ID base.</p>
 <h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
 <h4 id="provider">Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h4>
 <p>A <code>Provider</code> for Spotify songs may have a base interface <code>SpotifyProvider</code>, which is declared
 as an <code>@IdBase</code>.</p>
-<p>All implementations of the <code>SpotifyProvider</code> base must use the same song IDs to be compatible.</p>
-<pre><code class="kotlin">@IdBase
+<p>All implementations of the <code>SpotifyProvider</code> base must use the same song ID format to be compatible.</p>
+<pre><code class="kotlin">@IdBase(&quot;Spotify&quot;)
 interface SpotifyProvider : Provider
 class SpotifyProviderImpl : SpotifyProvider
 </code></pre>
@@ -141,21 +148,21 @@ for example <code>Mp3PlaybackFactory</code> or <code>YouTubePlaybackFactory</cod
 class VlcPlaybackFactoryImpl : VlcPlaybackFactory
 </code></pre>
 
-<p>Note that the used playback factories are predefined in the core library.</p>
+<p>Note that the base interfaces used here are predefined in the core library.</p>
 <hr />
 <p>An implementation for Spotify songs may look like this:</p>
 <pre><code class="kotlin">@Base
 interface SpotifyPlaybackFactory : PlaybackFactory {
     fun getPlayback(spotifySongId: String): Playback
 }
-class SpotifyProviderImpl : SpotifyPlaybackFactory
+class SpotifyPlaybackFactoryImpl : SpotifyPlaybackFactory
 </code></pre>
 
 <p>Note that in this case, the base interface declares the crucial <code>getPlayback(...)</code> method itself.
 Without it, a <code>PlaybackFactory</code> would not be not useful at all.</p>
 <h2 id="service">Service<a class="headerlink" href="#service" title="Permanent link">&para;</a></h2>
 <p>In order for the bot to find your plugin, you have to create a file with the fully qualified name
-of the implemented specific base interface (e.g. <code>net.bjoernpetersen.musicbot.spi.plugin.Provider</code>)
+of the implemented plugin interface (e.g. <code>net.bjoernpetersen.musicbot.spi.plugin.Provider</code>)
 in the <code>META-INF/services</code> directory. The file should contain all your implementations of the
 base interface, each on its own line.</p></div>
         </div>
