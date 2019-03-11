@@ -113,15 +113,7 @@ guaranteed that the <code>Resource.free()</code> method will be called.</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="no-resources">No resources<a class="headerlink" href="#no-resources" title="Permanent link">&para;</a></h3>
 <p>If you don't need to allocate any resources, you can simply return the <code>NoResource</code> singleton.</p>
-<p><strong> Kotlin: </strong></p>
 <pre><code class="kotlin">override fun loadSong(song: Song): Resource = NoResource
-</code></pre>
-
-<p><strong> Java: </strong></p>
-<pre><code class="java">@Override
-public Resource loadSong(Song song) {
-    return NoResource.INSTANCE;
-}
 </code></pre>
 
 <h3 id="file-resources">File resources<a class="headerlink" href="#file-resources" title="Permanent link">&para;</a></h3>
@@ -130,7 +122,6 @@ MP3-file before playing it. That MP3-file of course needs to be deleted at some 
 because storage space is typically finite.
 For that use case, the <code>FileResource</code> class is already included in the Core library.</p>
 <p>In this case your <code>loadSong()</code> and <code>supplyPlayback()</code> methods might look the following way:</p>
-<p><strong> Kotlin: </strong></p>
 <pre><code class="kotlin">
 @Base
 interface MyPlaybackFactory : FilePlaybackFactory
@@ -150,33 +141,6 @@ class MyProvider : Provider {
     override fun supplyPlayback(song: Song, resource: Resource): Playback {
         val fileResource = resource as FileResource
         return myPlaybackFactory.createPlayback(fileResource.file)
-    }
-}
-</code></pre>
-
-<p><strong> Java: </strong></p>
-<pre><code class="java">// file MyPlaybackFactory.java
-@Base
-public interface MyPlaybackFactory extends FilePlaybackFactory {}
-
-// file MyProvider.java
-@IdBase
-public class MyProvider implements Provider {
-    @Inject
-    private myPlaybackFactory: MyPlaybackFactory
-
-    // ...
-
-    @Override
-    public Resource loadSong(Song song) {
-        File file = downloadSong(song);
-        return new FileResource(file);
-    }
-
-    @Override
-    public Playback supplyPlayback(song: Song, resource: Resource) {
-        FileResource fileResource = (FileResource) resource
-        return myPlaybackFactory.createPlayback(fileResource.getFile())
     }
 }
 </code></pre></div>
